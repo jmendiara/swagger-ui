@@ -5,10 +5,15 @@ import {
   SHOW_AUTH_POPUP,
   AUTHORIZE,
   AUTHORIZE_OAUTH2,
-  LOGOUT
+  LOGOUT,
+  APPS,
 } from "./actions"
 
 export default {
+  [APPS]: (state, { payload }) => {
+    return state.set("apps", payload)
+  },
+
   [SHOW_AUTH_POPUP]: (state, { payload } ) =>{
     return state.set( "showDefinitions", payload )
   },

@@ -28,16 +28,48 @@ export default class Oauth2 extends React.Component {
     let clientSecret = auth && auth.get("clientSecret") || ""
     let passwordType = auth && auth.get("passwordType") || "basic"
 
+
     this.state = {
       name: name,
       schema: schema,
       scopes: [],
+      apps: {},
+      app: {
+        name: "",
+        clientId: "",
+        clientSecret: ""
+      },
       clientId: clientId,
       clientSecret: clientSecret,
       username: username,
       password: "",
       passwordType: passwordType
     }
+  }
+
+  componentDidMount() {
+    let { authActions } = this.props
+    authActions.getApps()
+  }
+
+  componentWillReceiveProps = (nextProps) => {
+    let apps = nextProps.auth().get('apps')
+    let app = apps[Object.keys(apps)[0]]
+    this.setState({
+      apps,
+      app: Object.assign({}, app),
+      clientId: app.clientId,
+      clientSecret: app.clientSecret,
+   })
+  }
+
+  onAppChange = (e) => {
+    let app =  this.state.apps[e.target.value]
+    this.setState({
+      app: Object.assign({}, app),
+      clientId: app.clientId,
+      clientSecret: app.clientSecret,
+    })
   }
 
   authorize =() => {
@@ -102,11 +134,6 @@ export default class Oauth2 extends React.Component {
                   source={ schema.get("description") } />
 
         { isAuthorized && <h6>Authorized</h6> }
-
-        { ( flow === IMPLICIT || flow === ACCESS_CODE ) && <p>Authorization URL: <code>{ schema.get("authorizationUrl") }</code></p> }
-        { ( flow === PASSWORD || flow === ACCESS_CODE || flow === APPLICATION ) && <p>Token URL:<code> { schema.get("tokenUrl") }</code></p> }
-        <p className="flow">Flow: <code>{ schema.get("flow") }</code></p>
-
         {
           flow !== PASSWORD ? null
             : <Row>
@@ -148,29 +175,20 @@ export default class Oauth2 extends React.Component {
         }
         {
           ( flow === APPLICATION || flow === IMPLICIT || flow === ACCESS_CODE || ( flow === PASSWORD && this.state.passwordType!== "basic") ) &&
-          ( !isAuthorized || isAuthorized && this.state.clientId) && <Row>
-            <label htmlFor="client_id">client_id:</label>
+          <Row>
             {
-              isAuthorized ? <code> ****** </code>
+              isAuthorized ? <p> <b>{this.state.app.name} </b></p>
                            : <Col tablet={10} desktop={10}>
-                               <input id="client_id" type="text" required={ flow === PASSWORD } data-name="clientId"
-                                      onChange={ this.onInputChange }/>
+                               <label htmlFor="appSelector">Select one of your 4th platform applications:</label>
+                               <select id="appSelector" style={{width:"100%"}} value={this.state.app.clientId} onChange={this.onAppChange}>
+                                {
+                                  Object.keys(this.state.apps).map(key => {
+                                    return <option value={this.state.apps[key].clientId} key={this.state.apps[key].clientId}>{this.state.apps[key].name}</option>
+                                  })
+                                }
+                               </select>
                              </Col>
             }
-          </Row>
-        }
-
-        {
-          ( flow === APPLICATION || flow === ACCESS_CODE || ( flow === PASSWORD && this.state.passwordType!== "basic") ) && <Row>
-            <label htmlFor="client_secret">client_secret:</label>
-            {
-              isAuthorized ? <code> ****** </code>
-                           : <Col tablet={10} desktop={10}>
-                               <input id="client_secret" type="text" data-name="clientSecret"
-                                      onChange={ this.onInputChange }/>
-                             </Col>
-            }
-
           </Row>
         }
 

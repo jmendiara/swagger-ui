@@ -3,7 +3,7 @@ import yamlConfig from "../../../swagger-config.yaml"
 
 const CONFIGS = [ "url", "spec", "validatorUrl", "onComplete", "onFailure", "authorizations", "docExpansion",
     "apisSorter", "operationsSorter", "supportedSubmitMethods", "highlightSizeThreshold", "dom_id",
-    "defaultModelRendering", "oauth2RedirectUrl", "showRequestHeaders" ]
+    "defaultModelRendering", "oauth2RedirectUrl", "showRequestHeaders", "fpTokenEndpoint", "fpAppsEndpoint" ]
 
 const parseYamlConfig = (yaml, system) => {
     try {

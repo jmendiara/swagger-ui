@@ -7,6 +7,7 @@ export const LOGOUT = "logout"
 export const PRE_AUTHORIZE_OAUTH2 = "pre_authorize_oauth2"
 export const AUTHORIZE_OAUTH2 = "authorize_oauth2"
 export const VALIDATE = "validate"
+export const APPS = "apps"
 
 const scopeSeparator = " "
 
@@ -28,6 +29,13 @@ export function logout(payload) {
   return {
     type: LOGOUT,
     payload: payload
+  }
+}
+
+export function apps(payload) {
+  return {
+    type: APPS,
+    payload
   }
 }
 
@@ -104,17 +112,112 @@ export const authorizeApplication = ( auth ) => ( { authActions } ) => {
   return authActions.authorizeRequest({body: buildFormData(form), name, url: schema.get("tokenUrl"), auth })
 }
 
-export const authorizeAccessCode = ( auth ) => ( { authActions } ) => {
+export const authorizeAccessCode = ( auth ) => ( { authActions, getConfigs } ) => {
  let { schema, name, clientId, clientSecret } = auth
  let form = {
    grant_type: "authorization_code",
    code: auth.code,
    client_id: clientId,
-   client_secret: clientSecret
+   client_secret: clientSecret,
+   tokenUrl: schema.get("tokenUrl"),
  }
 
- return authActions.authorizeRequest({body: buildFormData(form), name, url: schema.get("tokenUrl"), auth})
+ return authActions.authorizeRequestFP({body: buildFormData(form), name, url: getConfigs().fpTokenEndpoint, auth})
+ //return authActions.authorizeRequest({body: buildFormData(form), name, url: schema.get("tokenUrl"), auth})
+}
 
+export const authorizeRequestFP = ( data ) => ( { fn, authActions, errActions } ) => {
+  let { body, query={}, headers={}, name, url, auth } = data
+
+  let _headers = Object.assign({
+    "Accept":"application/json, text/plain, */*",
+    "Content-Type": "application/x-www-form-urlencoded"
+  }, headers)
+
+  fn.fetch({
+    url: url,
+    method: "post",
+    headers: _headers,
+    query: query,
+    body: body
+  })
+    .then(function (response) {
+      let token = JSON.parse(response.data)
+      let error = token && ( token.error || "" )
+      let parseError = token && ( token.parseError || "" )
+
+      if ( !response.ok ) {
+        errActions.newAuthErr( {
+          authId: name,
+          level: "error",
+          source: "auth",
+          message: response.statusText
+        } )
+        return
+      }
+
+      if ( error || parseError ) {
+        errActions.newAuthErr({
+          authId: name,
+          level: "error",
+          source: "auth",
+          message: JSON.stringify(token)
+        })
+        return
+      }
+
+      authActions.authorizeOauth2({ auth, token})
+    })
+    .catch(e => {
+      let err = new Error(e)
+      errActions.newAuthErr( {
+        authId: name,
+        level: "error",
+        source: "auth",
+        message: err.message
+      } ) })
+}
+
+export const getApps = ( ) => ( { fn, authActions, errActions, getConfigs } ) => {
+/*
+  authActions.apps({
+    id: {
+      name: "pollica",
+      clientId: "id",
+      clientSecret: "secret"
+    },
+    id2: {
+      name: "pollica2",
+      clientId: "id2",
+      clientSecret: "secret2"
+    }
+  })
+
+  return
+  */
+
+  // TODO: Using jquery here to rehuse the credentials that have the XMLHttpRequest object
+  // when this code is executed in a page that is BasicAuth protected
+  $.get(getConfigs().fpAppsEndpoint)
+    .then(res => {
+      var data = res.reduce((memo, item) => {
+        memo[item.consumer_key] = {
+          name: item.name,
+          clientId: item.consumer_key,
+          clientSecret: item.consumer_secret,
+        }
+        return memo
+      }, {})
+      authActions.apps(data)
+    })
+    .catch(e => {
+      let err = new Error(e)
+      errActions.newAuthErr({
+        level: "error",
+        source: "auth",
+        message: err.message
+      })
+    })
 }
 
 export const authorizeRequest = ( data ) => ( { fn, authActions, errActions } ) => {

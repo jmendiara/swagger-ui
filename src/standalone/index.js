@@ -6,7 +6,7 @@ import TopbarPlugin from "plugins/topbar"
 // the Standalone preset
 
 let preset = [
-  TopbarPlugin,
+  // TopbarPlugin,
   () => {
     return {
       components: { StandaloneLayout }
