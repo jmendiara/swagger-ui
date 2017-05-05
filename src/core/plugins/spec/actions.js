@@ -196,6 +196,7 @@ export const executeRequest = (req) => ({fn, specActions, specSelectors}) => {
     parsedRequest.operationId = method.toLowerCase() + "-" + pathName
   }
   parsedRequest = fn.buildRequest(parsedRequest)
+//  console.log('--->', req, parsedRequest)
   specActions.setRequest(req.pathName, req.method, parsedRequest)
 
   return fn.execute(req)
