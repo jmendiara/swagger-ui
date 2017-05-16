@@ -69,26 +69,38 @@
 
 <script src="./swagger-ui-bundle.js"> </script>
 <script src="./swagger-ui-standalone-preset.js"> </script>
+<script src="./swagger-ui-baikal-preset.js"> </script>
 <script>
 window.onload = function() {
   window["SwaggerUIBundle"] = window["swagger-ui-bundle"]
   window["SwaggerUIStandalonePreset"] = window["swagger-ui-standalone-preset"]
+  window["SwaggerUIBaikalPreset"] = window["swagger-ui-baikal-preset"]
   // Build a system
   const ui = SwaggerUIBundle({
-    url: "http://petstore.swagger.io/v2/swagger.json",
+    url: "http://localhost:3000/api/apis/f655a0a5-c7b2-4e17-b060-d8107ca2b225/swagger",
     dom_id: '#swagger-ui',
     presets: [
       SwaggerUIBundle.presets.apis,
-      SwaggerUIStandalonePreset
+      SwaggerUIBaikalPreset({
+        gateway: 'https://localhost:7443',
+        proxy: 'http://localhost:3000/proxy'
+      })
     ],
     plugins: [
       SwaggerUIBundle.plugins.DownloadUrl
     ],
-    layout: "StandaloneLayout"
+    layout: "StandaloneLayout",
+    oauth2RedirectUrl: "http://localhost:3000/oauth/callback"
   })
 
   window.ui = ui
 
+  ui.initOAuth({
+    clientId: "298e68e8-57e9-4c46-878e-ddc01d4d9472",
+    scopeSeparator: " ",
+  })
+
+/*
   ui.initOAuth({
     clientId: "your-client-id",
     clientSecret: "your-client-secret-if-required",
@@ -97,6 +109,7 @@ window.onload = function() {
     scopeSeparator: "-",
     additionalQueryStringParams: {test: "hello"}
   })
+  */
 }
 </script>
 </body>

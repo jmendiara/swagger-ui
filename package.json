@@ -14,10 +14,11 @@
   ],
   "license": "Apache-2.0",
   "scripts": {
-    "build": "npm run build-core && npm run build-bundle && npm run build-standalone",
+    "build": "npm run build-core && npm run build-bundle && npm run build-standalone && npm run build-baikal",
     "build-bundle": "webpack --config webpack-dist-bundle.config.js --colors",
     "build-core": "webpack --config webpack-dist.config.js --colors",
     "build-standalone": "webpack --config webpack-dist-standalone.config.js --colors",
+    "build-baikal": "webpack --config webpack-dist-baikal.config.js --colors",
     "predev": "npm install",
     "dev": "npm-run-all --parallel hot-server watch  open-localhost",
     "watch": "webpack --config webpack-watch.config.js --watch --progress",

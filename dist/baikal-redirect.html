@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en-US">
+<body onload="run()">
+</body>
+</html>
+<script>
+    'use strict';
+    function run () {
+        var oauth2 = window.opener.baikalRedirectOauth2;
+        var token, error;
+        try {
+          token = JSON.parse(getParameterByName('token'));
+          error = getParameterByName('error');
+          if (error) {
+            throw new Error(error);
+          } else if (!token) {
+            throw new Error('No token found in response');
+          } else {
+            oauth2.callback(null, {auth: oauth2.auth, token: token});
+          }
+        } catch(err) {
+            err.authName = oauth2.auth.name;
+            oauth2.callback(err);
+        }
+        window.close();
+    }
+
+    function getParameterByName(name, url) {
+      if (!url) url = window.location.href;
+      name = name.replace(/[\[\]]/g, "\\$&");
+      var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+          results = regex.exec(url);
+      if (!results) return null;
+      if (!results[2]) return '';
+      return decodeURIComponent(results[2].replace(/\+/g, " "));
+    }
+
+</script>

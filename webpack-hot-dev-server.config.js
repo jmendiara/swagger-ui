@@ -15,6 +15,9 @@ module.exports = require("./make-webpack-config")({
     ],
     'swagger-ui-standalone-preset': [
       './src/standalone/index.js'
+    ],
+    'swagger-ui-baikal-preset': [
+      './src/baikal/index.js'
     ]
   },
   output: {
